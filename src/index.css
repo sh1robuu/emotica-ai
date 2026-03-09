@@ -1,0 +1,191 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700;800&family=Google+Sans+Text:wght@400;500;600;700&display=swap');
+
+/* Enable class-based dark mode (toggled via .dark on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ========================================
+   Emotica AI – Custom Theme
+   Calming pastel palette for therapeutic UX
+   ======================================== */
+
+@theme {
+  /* Primary – Lavender */
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+
+  /* Secondary – Sky Blue */
+  --color-secondary-50: #f0f9ff;
+  --color-secondary-100: #e0f2fe;
+  --color-secondary-200: #bae6fd;
+  --color-secondary-300: #7dd3fc;
+  --color-secondary-400: #38bdf8;
+  --color-secondary-500: #0ea5e9;
+
+  /* Accent – Soft Pink */
+  --color-accent-50: #fff1f2;
+  --color-accent-100: #ffe4e6;
+  --color-accent-200: #fecdd3;
+  --color-accent-300: #fda4af;
+  --color-accent-400: #fb7185;
+  --color-accent-500: #f43f5e;
+
+  /* Surface colors */
+  --color-surface-light: #faf8ff;
+  --color-surface-dark: #1a1625;
+  --color-surface-card-light: rgba(255, 255, 255, 0.7);
+  --color-surface-card-dark: rgba(30, 25, 50, 0.7);
+
+  /* Font */
+  --font-sans: 'Google Sans', 'Product Sans', system-ui, -apple-system, sans-serif;
+
+  /* Animation */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-soft: pulse-soft 3s ease-in-out infinite;
+  --animate-gradient: gradient-shift 8s ease infinite;
+}
+
+
+/* ========================================
+   Dark mode utilities
+   ======================================== */
+.dark {
+  color-scheme: dark;
+}
+
+/* ========================================
+   Base styles
+   ======================================== */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    @apply antialiased;
+  }
+}
+
+/* ========================================
+   Custom animations
+   ======================================== */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes typing-dot {
+
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+/* ========================================
+   Glassmorphism utility
+   ======================================== */
+.glass {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(30, 25, 50, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ========================================
+   Scrollbar styling
+   ======================================== */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 250, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(167, 139, 250, 0.5);
+}
+
+/* ========================================
+   Animated gradient background
+   ======================================== */
+.animated-gradient-bg {
+  background: linear-gradient(-45deg,
+      #ede9fe, #e0f2fe, #ffe4e6, #f5f3ff, #bae6fd);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+.dark .animated-gradient-bg {
+  background: linear-gradient(-45deg,
+      #1a1625, #1e1b3a, #2d1f3d, #1a1625, #1b2340);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Typing indicator dots */
+.typing-dot {
+  animation: typing-dot 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
