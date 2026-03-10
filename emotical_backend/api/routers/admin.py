@@ -1,6 +1,8 @@
 import os
 import shutil
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+import asyncio
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, WebSocket, WebSocketDisconnect
 from db.models import User
 from api.routers.auth import get_current_user
 from api.routers.rag import get_vector_store, get_embeddings
@@ -10,6 +12,44 @@ from langchain_community.vectorstores import FAISS
 
 router = APIRouter()
 
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except Exception:
+                pass
+
+manager = ConnectionManager()
+
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket for Admin Real-Time Events.
+    Connect here to stream logs, interactions, and system updates dynamically.
+    """
+    await manager.connect(websocket)
+    try:
+        # Acknowledge connection
+        await websocket.send_text(f"Admin Dashboard Connected. Stream active.")
+        while True:
+            # ping loop to keep-alive
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        
 UPLOAD_DIR = "uploaded_docs/global"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 

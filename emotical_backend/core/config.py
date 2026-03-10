@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "ministral-3:14b-cloud"
     LLM_TEMPERATURE: float = 0.3
     LLM_MAX_TOKENS: int = 1800
+    SMALL_VL_MODEL: str = "ministral-3:8b-cloud"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

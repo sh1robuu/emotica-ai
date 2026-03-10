@@ -38,7 +38,8 @@
                             <div class="card-header bg-info text-white">Facial Emotion (ViT)</div>
                             <div class="card-body">
                                 <input type="file" id="imageFile" class="form-control mb-2" accept=".jpg,.jpeg,.png">
-                                <button class="btn btn-info text-white w-100 mb-2" onclick="detectEmotion()">Analyze Vision</button>
+                                <button class="btn btn-info text-white w-100 mb-2" onclick="detectEmotion()">Emotion (Lightweight ViT)</button>
+                                <button class="btn btn-outline-info w-100 mb-2" onclick="analyzeDetail()">Summary & Title (Large VL)</button>
                                 <img id="uploadedImage" class="img-fluid rounded mt-2" style="display:none; max-height: 150px;">
                             </div>
                         </div>
@@ -111,6 +112,30 @@
 
             try {
                 const res = await fetch(`${BASE_URL}/vision/emotion`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: formData
+                });
+                const data = await res.json();
+                updateOutput(data);
+            } catch (e) { updateOutput(e.message); }
+        }
+
+        async function analyzeDetail() {
+            const fileInput = document.getElementById('imageFile');
+            if(!fileInput.files[0]) return updateOutput("Lỗi: Please select an image for AI.");
+            
+            // Preview Image
+            const imgEl = document.getElementById('uploadedImage');
+            imgEl.src = URL.createObjectURL(fileInput.files[0]);
+            imgEl.style.display = 'block';
+
+            updateOutput("Sending image base64 to Large Vision LLM (ministral-3:8b-cloud)... This might take a few seconds.");
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch(`${BASE_URL}/vision/analyze_detail`, {
                     method: 'POST',
                     headers: getAuthHeaders(),
                     body: formData
