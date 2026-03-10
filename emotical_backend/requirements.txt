@@ -13,3 +13,14 @@ email-validator>=2.1.1
 pymysql==1.1.0
 pytest==8.1.1
 httpx==0.27.0
+
+# Advanced ML Features (RAG, Speech, TTS)
+python-multipart==0.0.9
+langchain==0.1.13
+sentence-transformers==2.6.1
+faiss-cpu==1.13.0
+torch==2.9.0
+torchaudio
+transformers==4.44.2
+librosa==0.10.1
+soundfile==0.12.1
