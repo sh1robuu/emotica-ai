@@ -2,6 +2,7 @@ import json
 import logging
 import requests
 from core.config import settings
+from api.routers.rag import get_vector_store
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,21 @@ def generate_llm_response(messages: list, style_summary: str = None) -> str:
     """Send messages to Ollama and get response"""
     
     user_context = ""
+    
+    # 1. RAG Retrieve
+    query = messages[-1].get("content", "") if messages else ""
+    if query:
+        try:
+            vector_store = get_vector_store()
+            if vector_store:
+                docs = vector_store.similarity_search(query, k=3)
+                if docs:
+                    rag_context = "\n".join([doc.page_content for doc in docs])
+                    user_context += f"\nRelevant Background Document Information:\n{rag_context}\nUse this information if it is helpful to answering the student's query.\n"
+        except Exception as e:
+            logger.error(f"Failed to query RAG FAISS store: {e}")
+
+    # 2. Add Style Summary
     if style_summary:
         user_context = f"\nObservations about this student based on past interactions:\n{style_summary}\nPlease tailor your tone occasionally to comfortably match these observations while remaining supportive."
 

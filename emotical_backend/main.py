@@ -30,6 +30,8 @@ def read_root():
 from api.routers import auth
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 
-from api.routers import chat, feedback
+from api.routers import chat, feedback, rag, speech
 app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 app.include_router(feedback.router, prefix="/api/feedback", tags=["Feedback"])
+app.include_router(rag.router, prefix="/api/rag", tags=["RAG Document Processing"])
+app.include_router(speech.router, prefix="/api/speech", tags=["Advanced Speech Integrations"])
