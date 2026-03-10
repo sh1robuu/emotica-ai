@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotica AI - API Test Page</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f7fa; color: #333; }
+        h1, h2 { color: #2c3e50; }
+        .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px;}
+        button:hover { background: #2980b9; }
+        .result { margin-top: 15px; padding: 10px; background: #ecf0f1; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto;}
+        .token-display { background: #dff0d8; color: #3c763d; padding: 10px; border-radius: 4px; margin-bottom: 20px; display: none; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>Emotica AI - Full API Tester 🧪</h1>
+    <p>Make sure your backend server is running on <code>http://localhost:8000</code>.</p>
+
+    <div id="tokenIndicator" class="token-display">
+        <strong>Authenticated:</strong> Token is acquired and will be used for protected requests.
+    </div>
+
+    <!-- 1. AUTHENTICATION -->
+    <div class="section">
+        <h2>1. Authentication (/api/auth)</h2>
+        
+        <div class="form-group">
+            <label>Register</label>
+            <input type="text" id="regName" placeholder="Name" value="Test User">
+            <input type="email" id="regEmail" placeholder="Email" value="test@test.com" style="margin-top:5px;">
+            <input type="password" id="regPassword" placeholder="Password" value="password123" style="margin-top:5px;">
+            <button onclick="register()">Register</button>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label>Login</label>
+            <input type="email" id="logEmail" placeholder="Email" value="test@test.com">
+            <input type="password" id="logPassword" placeholder="Password" value="password123" style="margin-top:5px;">
+            <button onclick="login()">Login</button>
+        </div>
+
+        <hr>
+        <button onclick="getMe()">Get My Profile (/me)</button>
+        <div class="result" id="authResult">Results will appear here...</div>
+    </div>
+
+
+    <!-- 2. CHAT & FEEDBACK -->
+    <div class="section">
+        <h2>2. Chat & Feedback (/api/chat, /api/feedback)</h2>
+        
+        <div class="form-group">
+            <label>Send Chat Message</label>
+            <textarea id="chatInput" rows="3" placeholder="Type your message...">I am feeling a little stressed today.</textarea>
+            <button onclick="sendChat()">Send Chat</button>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label>Submit Feedback</label>
+            <input type="number" id="fbRating" placeholder="Rating (1-5)" value="5" min="1" max="5">
+            <textarea id="fbText" rows="2" placeholder="Feedback text..." style="margin-top:5px;">Great app!</textarea>
+            <button onclick="submitFeedback()">Submit Feedback</button>
+        </div>
+        <div class="result" id="chatResult">Results will appear here...</div>
+    </div>
+
+
+    <!-- 3. RAG DOCUMENTS -->
+    <div class="section">
+        <h2>3. Document RAG (/api/rag)</h2>
+        <div class="form-group">
+            <label>Upload Document (.txt, .pdf)</label>
+            <input type="file" id="ragFile">
+            <button onclick="uploadRag()">Upload for Embedding</button>
+        </div>
+        <div class="result" id="ragResult">Results will appear here...</div>
+    </div>
+
+
+    <!-- 4. SPEECH PROCESSING -->
+    <div class="section">
+        <h2>4. Speech Processing (/api/speech)</h2>
+        
+        <div class="form-group">
+            <label>Emotion Recognition (Upload Audio)</label>
+            <input type="file" id="emotionFile" accept="audio/*">
+            <button onclick="detectEmotion()">Detect Emotion</button>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label>Speech-to-Text (Upload Audio)</label>
+            <input type="file" id="sttFile" accept="audio/*">
+            <button onclick="transcribeSpeech()">Transcribe Audio</button>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label>Text-to-Speech (Synthesize)</label>
+            <input type="text" id="ttsText" value="Xin chào, đây là giọng nói trí tuệ nhân tạo." placeholder="Text to synthesize">
+            <select id="ttsLang" style="margin-top:5px;">
+                <option value="vi">Vietnamese (vi)</option>
+                <option value="en">English (en)</option>
+            </select>
+            <button onclick="synthesizeSpeech()">Synthesize</button>
+            <br>
+            <audio id="ttsAudio" controls style="margin-top:10px; display:none;"></audio>
+        </div>
+
+        <div class="result" id="speechResult">Results will appear here...</div>
+    </div>
+
+    <!-- 5. COMPUTER VISION -->
+    <div class="section">
+        <h2>5. Computer Vision (/api/vision)</h2>
+        
+        <div class="form-group">
+            <label>Facial Emotion Recognition (Upload Image .jpg/.png)</label>
+            <input type="file" id="visionEmotionFile" accept="image/*">
+            <button onclick="detectFacialEmotion()">Detect Emotion (DeepFace)</button>
+        </div>
+        <div class="result" id="visionResult">Results will appear here...</div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8000/api';
+        let jwtToken = '';
+
+        function updateOutput(id, text) {
+            document.getElementById(id).innerText = typeof text === 'object' ? JSON.stringify(text, null, 2) : text;
+        }
+
+        function getAuthHeaders() {
+            return jwtToken ? { 'Authorization': `Bearer ${jwtToken}` } : {};
+        }
+
+        // ================= AUTH ================= //
+        async function register() {
+            try {
+                const res = await fetch(`${BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('regName').value,
+                        email: document.getElementById('regEmail').value,
+                        password: document.getElementById('regPassword').value
+                    })
+                });
+                const data = await res.json();
+                updateOutput('authResult', data);
+            } catch (e) { updateOutput('authResult', e.message); }
+        }
+
+        async function login() {
+            try {
+                const res = await fetch(`${BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('logEmail').value,
+                        password: document.getElementById('logPassword').value
+                    })
+                });
+                const data = await res.json();
+                if (data.access_token) {
+                    jwtToken = data.access_token;
+                    document.getElementById('tokenIndicator').style.display = 'block';
+                }
+                updateOutput('authResult', data);
+            } catch (e) { updateOutput('authResult', e.message); }
+        }
+
+        async function getMe() {
+            try {
+                const res = await fetch(`${BASE_URL}/auth/me`, {
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                updateOutput('authResult', data);
+            } catch (e) { updateOutput('authResult', e.message); }
+        }
+
+        // ================= CHAT & FEEDBACK ================= //
+        async function sendChat() {
+            updateOutput('chatResult', 'Loading...');
+            try {
+                const res = await fetch(`${BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: "ministral-3:14b-cloud",
+                        messages: [{ role: "user", content: document.getElementById('chatInput').value }],
+                        stream: false
+                    })
+                });
+                const data = await res.json();
+                updateOutput('chatResult', data);
+            } catch (e) { updateOutput('chatResult', e.message); }
+        }
+
+        async function submitFeedback() {
+            try {
+                const res = await fetch(`${BASE_URL}/feedback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        rating: parseInt(document.getElementById('fbRating').value),
+                        text: document.getElementById('fbText').value
+                    })
+                });
+                const data = await res.json();
+                updateOutput('chatResult', data);
+            } catch (e) { updateOutput('chatResult', e.message); }
+        }
+
+        // ================= RAG ================= //
+        async function uploadRag() {
+            updateOutput('ragResult', 'Uploading and processing (this may take a bit)...');
+            const file = document.getElementById('ragFile').files[0];
+            if (!file) { return alert("Select a file first!"); }
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch(`${BASE_URL}/rag/documents`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                updateOutput('ragResult', data);
+            } catch (e) { updateOutput('ragResult', e.message); }
+        }
+
+        // ================= SPEECH ================= //
+        async function detectEmotion() {
+            updateOutput('speechResult', 'Detecting emotion...');
+            const file = document.getElementById('emotionFile').files[0];
+            if (!file) { return alert("Select an audio file first!"); }
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch(`${BASE_URL}/speech/emotion`, { method: 'POST', body: formData });
+                const data = await res.json();
+                updateOutput('speechResult', data);
+            } catch (e) { updateOutput('speechResult', e.message); }
+        }
+
+        async function transcribeSpeech() {
+            updateOutput('speechResult', 'Transcribing audio...');
+            const file = document.getElementById('sttFile').files[0];
+            if (!file) { return alert("Select an audio file first!"); }
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch(`${BASE_URL}/speech/transcribe`, { method: 'POST', body: formData });
+                const data = await res.json();
+                updateOutput('speechResult', data);
+            } catch (e) { updateOutput('speechResult', e.message); }
+        }
+
+        async function synthesizeSpeech() {
+            updateOutput('speechResult', 'Synthesizing voice...');
+            try {
+                const formData = new FormData();
+                formData.append('text', document.getElementById('ttsText').value);
+                formData.append('lang', document.getElementById('ttsLang').value);
+
+                const res = await fetch(`${BASE_URL}/speech/synthesize`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audioElem = document.getElementById('ttsAudio');
+                    audioElem.src = audioUrl;
+                    audioElem.style.display = 'block';
+                    updateOutput('speechResult', 'Audio generated successfully. Click play.');
+                } else {
+                    const error = await res.json();
+                    updateOutput('speechResult', error);
+                }
+            } catch (e) { updateOutput('speechResult', e.message); }
+        }
+
+        // ================= VISION ================= //
+        async function detectFacialEmotion() {
+            const file = document.getElementById('visionEmotionFile').files[0];
+            if (!file) { return alert("Please select an image file first."); }
+            
+            updateOutput('visionResult', 'Running DeepFace model to analyze facial emotion...');
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch(`${BASE_URL}/vision/emotion`, { method: 'POST', body: formData });
+                const data = await res.json();
+                updateOutput('visionResult', data);
+            } catch (e) { updateOutput('visionResult', 'Error: ' + e.message); }
+        }
+    </script>
+</body>
+</html>

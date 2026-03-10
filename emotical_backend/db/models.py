@@ -20,6 +20,18 @@ class User(Base):
 
     chats = relationship("ChatSession", back_populates="user")
     feedbacks = relationship("Feedback", back_populates="user")
+    memory = relationship("UserMemory", back_populates="user", uselist=False)
+
+class UserMemory(Base):
+    __tablename__ = "user_memories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(50), ForeignKey("users.id"), unique=True)
+    memory_text = Column(Text)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    user = relationship("User", back_populates="memory")
 
 class ChatSession(Base):
     __tablename__ = "chat_sessions"

@@ -76,14 +76,20 @@ celery -A worker.celery_app worker --loglevel=info
 
 ---
 
-## 🧪 Testing
-
+### 2. Isolated Pytest Suite
 A completely isolated test suite runs securely using an in-memory SQLite database (`test.db`). It tests Authentication, User Retrieval, Chat processes, and Feedback.
 
 ```bash
 source venv/bin/activate
 pytest tests/ -v
 ```
+
+### 3. Interactive Web Tester (Frontend Mock)
+To manually test all API endpoints without needing Postman or a full frontend, use the built-in HTML tester:
+
+1. Ensure the API server is running (`uvicorn main:app --reload`).
+2. Open your web browser and navigate to `http://localhost:8000/test`.
+3. You can visually test user registration, token generation, RAG document uploading, and STT/TTS audio manipulation.
 
 ---
 

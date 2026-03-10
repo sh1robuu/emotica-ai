@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotica AI - RAG & Admin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { min-height: 100vh; background: #343a40; color: white; padding-top: 20px; }
+        .sidebar a { color: #adb5bd; text-decoration: none; display: block; padding: 10px 20px; }
+        .sidebar a:hover, .sidebar a.active { background: #495057; color: white; }
+        .content-area { padding: 30px; }
+        .result-box { background: #e9ecef; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <h4 class="text-center mb-4">Emotica Admin</h4>
+                <a href="/test">1. Authentication</a>
+                <a href="/test/chat">2. AI Therapy & Memory</a>
+                <a href="/test/rag" class="active">3. RAG & Global DB</a>
+                <a href="/test/media">4. Speech & Vision AI</a>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-9 col-lg-10 content-area">
+                <h2>RAG Vector DB Management</h2>
+                
+                <div class="row mt-4">
+                    <!-- User Personal RAG -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">Upload User RAG Document</div>
+                            <div class="card-body">
+                                <p class="small text-muted">Upload a .txt or .pdf file for your personal therapy session context.</p>
+                                <input type="file" id="userFile" class="form-control mb-2" accept=".txt,.pdf">
+                                <button class="btn btn-primary w-100" onclick="uploadUserDoc()">Upload User Document</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Global RAG -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm border-danger">
+                            <div class="card-header bg-danger text-white">Upload GLOBAL Admin Document</div>
+                            <div class="card-body">
+                                <p class="small text-muted">Upload a .txt or .pdf file that will be searchable by ALL users.</p>
+                                <input type="file" id="globalFile" class="form-control mb-2" accept=".txt,.pdf">
+                                <button class="btn btn-danger w-100" onclick="uploadGlobalDoc()">Upload Global Document (Admin)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <h5>Console Output:</h5>
+                        <div class="result-box" id="uploadResult">Results will stream here...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:8000/api';
+
+        function updateOutput(text) {
+            document.getElementById('uploadResult').innerText = typeof text === 'object' ? JSON.stringify(text, null, 2) : text;
+        }
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('jwtToken');
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+
+        async function doUpload(endpoint, fileInputId) {
+            const fileInput = document.getElementById(fileInputId);
+            if (!fileInput.files.length) return updateOutput("Lỗi: Please select a file to upload.");
+            updateOutput("Uploading " + fileInput.files[0].name + "...");
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const res = await fetch(`${BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: formData
+                });
+                const data = await res.json();
+                updateOutput(data);
+            } catch (e) { updateOutput(e.message); }
+        }
+
+        function uploadUserDoc() { doUpload('/rag/documents', 'userFile'); }
+        function uploadGlobalDoc() { doUpload('/admin/rag/global', 'globalFile'); }
+    </script>
+</body>
+</html>

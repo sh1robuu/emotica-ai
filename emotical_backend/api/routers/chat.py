@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from db.database import get_db
 from db.models import User, ChatSession, ChatMessage
 from api.routers.auth import get_current_user
-from services.llm import generate_llm_response
+from services.llm import generate_llm_response_stream
 from worker.tasks import analyze_chat_style
 import uuid
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -69,29 +71,66 @@ async def chat_endpoint(request: Request, db: Session = Depends(get_db)):
 
     # 4. Generate AI response
     style_summary = current_user.style_summary if current_user else None
-    ai_text = generate_llm_response(messages, style_summary)
+    
+    memory_text = ""
+    if current_user and getattr(current_user, "memory", None):
+        memory_text = current_user.memory.memory_text
 
-    # 5. Save AI response to DB
-    if current_user and session_id:
-        db_ai_msg = ChatMessage(session_id=session_id, role="assistant", content=ai_text)
-        db.add(db_ai_msg)
-        db.commit()
+    async def sse_generator():
+        in_think_block = False
+        full_response = ""
+        buffer = ""
+        
+        for chunk in generate_llm_response_stream(messages, style_summary, memory_text):
+            full_response += chunk
+            buffer += chunk
+            
+            # Substring matching for think tags
+            while True:
+                if not in_think_block and "<think>" in buffer:
+                    idx = buffer.find("<think>")
+                    if idx > 0:
+                        yield f"data: {json.dumps({'chunk': buffer[:idx], 'is_thinking': False})}\n\n"
+                    in_think_block = True
+                    buffer = buffer[idx+7:]
+                elif in_think_block and "</think>" in buffer:
+                    idx = buffer.find("</think>")
+                    if idx > 0:
+                        yield f"data: {json.dumps({'chunk': buffer[:idx], 'is_thinking': True})}\n\n"
+                    in_think_block = False
+                    buffer = buffer[idx+8:]
+                else:
+                    break
+                    
+            safe_to_flush = len(buffer)
+            # If a tag might be forming at the end of the buffer, hold it back
+            if "<" in buffer:
+                last_open = buffer.rfind("<")
+                if len(buffer) - last_open < 8:
+                    safe_to_flush = last_open
+                    
+            if safe_to_flush > 0:
+                flush_str = buffer[:safe_to_flush]
+                buffer = buffer[safe_to_flush:]
+                yield f"data: {json.dumps({'chunk': flush_str, 'is_thinking': in_think_block})}\n\n"
+                
+        if buffer:
+            yield f"data: {json.dumps({'chunk': buffer, 'is_thinking': in_think_block})}\n\n"
+            
+        yield "data: [DONE]\n\n"
+        
+        # 5. Save AI response to DB
+        if current_user and session_id:
+            db_ai_msg = ChatMessage(session_id=session_id, role="assistant", content=full_response)
+            db.add(db_ai_msg)
+            db.commit()
 
-        # 6. Trigger background task (celery) every few messages to run summarization
-        # Let's count messages in this session
-        msg_count = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).count()
-        if msg_count > 0 and msg_count % 5 == 0:
-            analyze_chat_style.delay(current_user.id, session_id)
+            # 6. Trigger background task
+            msg_count = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).count()
+            if msg_count > 0 and msg_count % 5 == 0:
+                analyze_chat_style.delay(current_user.id, session_id)
 
-    # 7. Return Ollama-compatible response format so frontend emoticaService.js works out of the box
-    return {
-        "model": data.get("model", "ministral-3:14b-cloud"),
-        "message": {
-            "role": "assistant",
-            "content": ai_text
-        },
-        "done": True
-    }
+    return StreamingResponse(sse_generator(), media_type="text/event-stream")
 
 @router.get("/sessions", summary="Get Chat Sessions", description="Retrieve all past conversation sessions for the authenticated user.")
 def get_sessions(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
